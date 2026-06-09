@@ -15,8 +15,8 @@ load_dotenv()
 CUSTOMER_AGENT_URL = os.getenv("CUSTOMER_AGENT_URL", "http://localhost:10100")
 
 QUESTION = (
-    "If a company breaks a contract and avoids taxes, "
-    "what are the legal and regulatory consequences?"
+    "Nếu một công ty vi phạm hợp đồng và trốn thuế,"
+    "hậu quả pháp lý và quy chế là gì?, "
 )
 
 
@@ -60,8 +60,15 @@ async def main() -> None:
             params=MSP(message=message),
         )
 
+                # Bổ sung đo thời gian Latency
+        import time
         print("Sending request (this may take 30-60s while agents chain)...\n")
+        
+        start_time = time.perf_counter() 
         response = await client.send_message(request)
+        end_time = time.perf_counter() 
+        
+        latency = end_time - start_time
 
         # Parse response
         result_text = ""
@@ -88,6 +95,7 @@ async def main() -> None:
             print("=" * 60)
             print(result_text)
             print("=" * 60)
+            print(f"\n⏱️ Tổng thời gian xử lý (Latency): {latency:.2f} giây\n")
         else:
             print("No text response received. Raw response:")
             print(response)

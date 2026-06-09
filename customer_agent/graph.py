@@ -35,6 +35,7 @@ Always use the `delegate_to_legal_agent` tool for any substantive legal question
 Do not attempt to answer complex legal questions from your own knowledge alone.
 
 Be professional, clear, and make the specialist response accessible to the user.
+Communicate and provide the final results to users in Vietnamese.
 """
 
 

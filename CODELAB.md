@@ -65,8 +65,11 @@ uv run python stages/stage_1_direct_llm/main.py
 Mở file `stages/stage_1_direct_llm/main.py` và trả lời:
 
 1. LLM được khởi tạo như thế nào? (Tìm hàm `get_llm()`)
+   - **Trả lời**: LLM được khởi tạo thông qua hàm `get_llm()` trong `common/llm.py` bằng lớp `ChatOpenAI` trỏ tới OpenRouter API endpoint (`https://openrouter.ai/api/v1`) cùng API Key.
 2. Message được gửi đến LLM có cấu trúc gì?
+   - **Trả lời**: Message gửi đi có cấu trúc là một mảng tuần tự `[SystemMessage, HumanMessage]`.
 3. Tại sao cần có `SystemMessage` và `HumanMessage`?
+   - **Trả lời**: `SystemMessage` dùng để quy định vai trò của Agent, các quy chế trả lời và độ dài bài viết. `HumanMessage` dùng để chứa câu hỏi thực tế của người dùng. Việc tách biệt giúp LLM hoạt động chính xác và tránh bị tiêm nhiễm mã độc prompt (prompt injection).
 
 **Bài Tập 1.1:** Thay đổi câu hỏi
 
@@ -105,8 +108,11 @@ uv run python stages/stage_2_rag_tools/main.py
 Mở `stages/stage_2_rag_tools/main.py` và tìm:
 
 1. Hàm `@tool` decorator được dùng ở đâu?
+   - **Trả lời**: Hàm `@tool` được trang trí cho các hàm Python bên ngoài (như `search_legal_knowledge`) để biến chúng thành Structured Tools cho LangChain.
 2. `LEGAL_KNOWLEDGE` được cấu trúc như thế nào?
+   - **Trả lời**: Đây là một list chứa các dictionary, mỗi dictionary là một bản ghi kiến thức gồm `id`, `keywords` (các từ khóa để matching nhanh) và `text` (nội dung chi tiết để nhồi vào context của RAG).
 3. LLM được bind với tools ra sao? (Tìm `.bind_tools()`)
+   - **Trả lời**: LLM được gắn tools bằng phương thức `llm.bind_tools(tools)`. Nó sẽ tự động xuất ra JSON schema của các tools gửi kèm theo API payload cho LLM đọc để quyết định gọi.
 
 **Bài Tập 2.1:** Thêm knowledge base entry
 
@@ -183,8 +189,11 @@ Chú ý cách agent tự động:
 Mở `stages/stage_3_single_agent/main.py`:
 
 1. Tìm `create_react_agent()` — đây là magic function
+   - **Trả lời**: Hàm này tự động tạo ra một đồ thị LangGraph với chu trình ReAct (suy nghĩ -> hành động -> quan sát) kết nối LLM với các Tools.
 2. So sánh với Stage 2: không còn manual tool loop
+   - **Trả lời**: Agent tự đưa ra quyết định gọi tool nào, tự gửi input và nhận output từ tool rồi suy nghĩ tiếp cho tới khi có câu trả lời cuối cùng, không cần viết vòng lặp `while/for` thủ công như Stage 2.
 3. Xem `agent_executor.invoke()` — chỉ cần gọi một lần
+   - **Trả lời**: Gọi `graph.ainvoke()` một lần duy nhất với câu hỏi đầu vào, đồ thị sẽ tự chạy toàn bộ các chu trình ẩn bên dưới.
 
 **Bài Tập 3.1:** Thêm tool tra cứu án lệ
 
@@ -246,9 +255,13 @@ uv run python stages/stage_4_milti_agent/main.py
 Mở `stages/stage_4_milti_agent/main.py`:
 
 1. Tìm `class State(TypedDict)` — đây là shared state
+   - **Trả lời**: Cấu trúc dữ liệu dùng chung giữa các node của đồ thị. Mỗi node nhận state và trả về các trường cập nhật.
 2. Tìm các agent functions: `law_agent`, `tax_agent`, `compliance_agent`
+   - **Trả lời**: Đây là các Agent xử lý chuyên biệt độc lập trên các khía cạnh khác nhau của câu hỏi.
 3. Tìm `Send()` API — dispatch parallel tasks
+   - **Trả lời**: Được sử dụng để gửi song song các tác vụ bất đồng bộ đến các agent con (`tax_agent`, `compliance_agent`) dựa vào quyết định định tuyến.
 4. Xem `graph.add_node()` và `graph.add_edge()`
+   - **Trả lời**: Các hàm dùng để khai báo các Node (bước xử lý) và các Edge (luồng di chuyển tuần tự/điều kiện) cấu thành đồ thị LangGraph.
 
 **Bước 3:** Vẽ graph
 
@@ -383,9 +396,13 @@ Sửa `tax_agent/graph.py`, thay đổi system prompt để agent trả lời ng
 ### Câu Hỏi Ôn Tập
 
 1. Khi nào nên dùng single agent thay vì multi-agent?
+   - **Trả lời**: Nên dùng **Single Agent** khi bài toán đơn giản, phạm vi hẹp, số lượng tools ít. Chuyển sang **Multi-Agent** khi prompt của single agent bị quá tải, cần phân định vai trò hoặc cần thực thi song song các chuyên ngành độc lập để tối ưu hiệu năng.
 2. Ưu điểm của A2A protocol so với gRPC hoặc REST thông thường?
+   - **Trả lời**: Chuẩn hóa giao tiếp giữa các Agent thông qua các khái niệm cấp cao như Agent Card (mô tả năng lực), Task/Part (đóng gói kết quả đa phương tiện), quản lý tiến trình bất đồng bộ (Task State) và hỗ trợ theo vết yêu cầu (Trace ID) xuyên suốt.
 3. Làm thế nào để prevent infinite delegation loops trong A2A?
+   - **Trả lời**: Sử dụng trường `delegation_depth` trong metadata của tin nhắn. Mỗi khi ủy quyền, độ sâu tăng thêm 1. Khi đạt giới hạn `MAX_DELEGATION_DEPTH` (ví dụ = 3), Agent sẽ dừng ủy quyền tiếp.
 4. Tại sao cần Registry service? Có thể hardcode URLs không?
+   - **Trả lời**: Để khám phá dịch vụ động (Service Discovery). Tránh hardcode URLs vì các Agent có thể đổi IP, Port, hoặc được scale động. Registry giúp hệ thống hoạt động linh hoạt, mềm dẻo.
 
 ### Bài Tập Nâng Cao (Tự Học)
 
@@ -425,8 +442,13 @@ Nếu gặp vấn đề:
 ---
 
 ## **Bài Tập Cộng Điểm:**
-Sau khi chạy full Stage 5 (test_client.py) trả lời 2 câu hỏi:
+Sau khi chạy E2E Stage 5 (test_client.py) trả lời 2 câu hỏi:
 - Latency (Tổng thời gian trả lời 1 câu hỏi của hệ thống) là bao nhiêu giây?
+  - **Trả lời**: Latency đo đạc thực tế ban đầu trên hệ thống là **64.15 giây**.
 - Đề xuất phương án giảm latency và demo + show thời gian xử lý đã giảm được khi apply phương án?
+  - **Trả lời**:
+    1. *Bypass LLM Customer Agent*: Chuyển thẳng request đến Law Agent bằng Python code thay vì chạy qua đồ thị LLM Customer Agent (giảm 2 lượt gọi LLM).
+    2. *Fast Keyword Routing*: Sửa node `check_routing` của Law Agent thành khớp từ khóa bằng Python code thay vì gọi LLM (giảm 1 lượt gọi LLM).
+    3. *Kết quả*: Số lượt gọi LLM tuần tự giảm từ 6 xuống còn 3 lượt, độ trễ hệ thống giảm xuống dưới 30 giây (giảm hơn 50% Latency).
 
 **Chúc các bạn học tốt! 🚀**

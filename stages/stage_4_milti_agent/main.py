@@ -133,6 +133,7 @@ async def analyze_law(state: LegalState) -> dict:
                 "You are a senior corporate litigation attorney specialising in contract law, "
                 "tort law, and general business law. Analyse the legal aspects of the question "
                 "thoroughly. Keep your analysis under 200 words."
+                "You must analyze and answer in Vietnamese."
             )
         ),
         HumanMessage(content=state["question"]),
@@ -257,6 +258,7 @@ async def aggregate(state: LegalState) -> dict:
                 "comprehensive, well-structured response. Combine the following analyses "
                 "into a cohesive answer with clear sections. Avoid redundancy. "
                 "Keep your response under 500 words."
+                "Bạn phải phân tích và trả lời bằng tiếng Việt."
             )
         ),
         HumanMessage(content=combined),
